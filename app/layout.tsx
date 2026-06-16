@@ -28,7 +28,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 // 배포 도메인 — 실제 도메인이 정해지면 NEXT_PUBLIC_SITE_URL 로 덮어쓴다.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://kiki-typing.vercel.app";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://kiki-typing.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

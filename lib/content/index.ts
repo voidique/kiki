@@ -13,7 +13,10 @@ const SENTENCES: Record<Language, ContentItem[]> = {
   ko: KO_SENTENCES,
   en: EN_SENTENCES,
 };
-const QUOTES: Record<Language, ContentItem[]> = { ko: KO_QUOTES, en: EN_QUOTES };
+const QUOTES: Record<Language, ContentItem[]> = {
+  ko: KO_QUOTES,
+  en: EN_QUOTES,
+};
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];

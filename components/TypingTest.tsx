@@ -11,7 +11,7 @@ import { contentIdFor, makeContent } from "@/lib/content";
 import { strokesOfChar } from "@/lib/hangul";
 import { soundEngine } from "@/lib/sound";
 import { type CharSample, computeResult } from "@/lib/stats";
-import type { ContentItem, TestMode, TestResult } from "@/lib/types";
+import type { ContentItem, Language, TestMode, TestResult } from "@/lib/types";
 import { LiveStats } from "./LiveStats";
 import { Results } from "./Results";
 
@@ -19,11 +19,12 @@ type Status = "idle" | "running" | "done";
 
 interface Props {
   mode: TestMode;
+  language: Language;
   onResult: (result: TestResult) => void;
   bestCpm: number;
 }
 
-export function TypingTest({ mode, onResult, bestCpm }: Props) {
+export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
   // 서버에서는 null — makeContent 의 Math.random 으로 인한 하이드레이션 불일치를 막기 위해
   // 첫 지문은 마운트 후(useEffect)에 클라이언트에서만 생성한다.
   const [content, setContent] = useState<ContentItem | null>(null);
@@ -44,9 +45,9 @@ export function TypingTest({ mode, onResult, bestCpm }: Props) {
 
   const target = content?.text ?? "";
 
-  /** 새 지문으로 초기화 */
-  const reset = useCallback((nextMode: TestMode) => {
-    setContent(makeContent(nextMode));
+  /** 새 지문으로 초기화 (현재 모드 + 언어 기준) */
+  const reset = useCallback(() => {
+    setContent(makeContent(mode, language));
     setTyped("");
     setComposing(false);
     setStatus("idle");
@@ -56,12 +57,12 @@ export function TypingTest({ mode, onResult, bestCpm }: Props) {
     startedAtRef.current = 0;
     // 다음 프레임에 포커스 (DOM 갱신 후)
     requestAnimationFrame(() => inputRef.current?.focus());
-  }, []);
+  }, [mode, language]);
 
-  // 모드가 바뀌면 새 지문
+  // 모드 또는 언어가 바뀌면 새 지문
   useEffect(() => {
-    reset(mode);
-  }, [mode, reset]);
+    reset();
+  }, [reset]);
 
   const finish = useCallback(
     (finalTyped: string) => {
@@ -159,15 +160,15 @@ export function TypingTest({ mode, onResult, bestCpm }: Props) {
 
       if (e.key === "Tab") {
         e.preventDefault();
-        reset(mode);
+        reset();
         return;
       }
       if (status === "done" && e.key === "Enter") {
         e.preventDefault();
-        reset(mode);
+        reset();
       }
     },
-    [mode, status, reset],
+    [status, reset],
   );
 
   const focusInput = () => inputRef.current?.focus();
@@ -191,7 +192,7 @@ export function TypingTest({ mode, onResult, bestCpm }: Props) {
           result={result}
           content={content}
           bestCpm={bestCpm}
-          onRestart={() => reset(mode)}
+          onRestart={() => reset()}
         />
       ) : (
         <button

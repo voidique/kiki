@@ -40,7 +40,11 @@ export function Results({ result, content, bestCpm, onRestart }: Props) {
 
       {/* 상세 — 칩 형태로 정돈 */}
       <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
-        <Chip label="원시" value={`${Math.round(result.rawCpm)}`} unit="타/분" />
+        <Chip
+          label="원시"
+          value={`${Math.round(result.rawCpm)}`}
+          unit="타/분"
+        />
         <Chip label="총 타수" value={`${result.totalStrokes}`} />
         <Chip label="정타" value={`${result.correctChars}`} />
         <Chip label="오타" value={`${result.incorrectChars}`} tone="error" />
