@@ -1,4 +1,4 @@
-import type { TestResult } from "./types";
+import type { Language, TestMode, TestResult } from "./types";
 
 /*
  * 로컬 저장소 — 향후 PostgreSQL `test_results` 테이블로 그대로 옮길 수 있도록
@@ -31,19 +31,46 @@ export function saveResult(result: TestResult): TestResult[] {
   return trimmed;
 }
 
-/** 해당 모드의 개인 최고 타수(cpm) */
+/** 해당 모드 + 언어의 개인 최고 타수(cpm) */
 export function bestCpm(
-  mode: TestResult["mode"],
+  mode: TestMode,
+  language: Language,
   rows = loadResults(),
 ): number {
   return rows
-    .filter((r) => r.mode === mode)
+    .filter((r) => r.mode === mode && r.language === language)
     .reduce((max, r) => Math.max(max, r.cpm), 0);
 }
 
 export function clearResults(): void {
   try {
     window.localStorage.removeItem(KEY);
+  } catch {
+    /* noop */
+  }
+}
+
+/* ── 사용자 선택(언어·모드) 저장 — 새로고침해도 유지 ───────────── */
+const PREFS_KEY = "kiki.prefs.v1";
+
+export interface Prefs {
+  language: Language;
+  mode: TestMode;
+}
+
+export function loadPrefs(): Partial<Prefs> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(PREFS_KEY);
+    return raw ? (JSON.parse(raw) as Partial<Prefs>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function savePrefs(prefs: Prefs): void {
+  try {
+    window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
     /* noop */
   }

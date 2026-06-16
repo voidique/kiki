@@ -38,13 +38,15 @@ export function Results({ result, content, bestCpm, onRestart }: Props) {
         </div>
       </div>
 
-      {/* 상세 */}
-      <div className="flex flex-wrap gap-x-8 gap-y-2 border-t border-line pt-4 font-mono text-xs text-muted tabular-nums">
-        <span>원시 {Math.round(result.rawCpm)} 타/분</span>
-        <span>총 {result.totalStrokes} 타</span>
-        <span className="text-fg">정타 {result.correctChars}</span>
-        <span className="text-error">오타 {result.incorrectChars}</span>
-        {content.author && <span>— {content.author}</span>}
+      {/* 상세 — 칩 형태로 정돈 */}
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
+        <Chip label="원시" value={`${Math.round(result.rawCpm)}`} unit="타/분" />
+        <Chip label="총 타수" value={`${result.totalStrokes}`} />
+        <Chip label="정타" value={`${result.correctChars}`} />
+        <Chip label="오타" value={`${result.incorrectChars}`} tone="error" />
+        {content.author && (
+          <span className="ml-auto text-sm text-muted">— {content.author}</span>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
@@ -68,5 +70,27 @@ function Metric({ label, value }: { label: string; value: string }) {
       </span>
       <span className="text-2xl text-fg">{value}</span>
     </div>
+  );
+}
+
+function Chip({
+  label,
+  value,
+  unit,
+  tone,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  tone?: "error";
+}) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5 rounded-full border border-line bg-fg/[0.02] px-3 py-1.5 font-mono text-xs tabular-nums">
+      <span className="text-faint">{label}</span>
+      <span className={tone === "error" ? "text-error" : "text-fg"}>
+        {value}
+      </span>
+      {unit && <span className="text-faint">{unit}</span>}
+    </span>
   );
 }

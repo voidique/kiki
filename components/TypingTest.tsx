@@ -9,6 +9,7 @@ import {
 } from "react";
 import { contentIdFor, makeContent } from "@/lib/content";
 import { strokesOfChar } from "@/lib/hangul";
+import { soundEngine } from "@/lib/sound";
 import { type CharSample, computeResult } from "@/lib/stats";
 import type { ContentItem, TestMode, TestResult } from "@/lib/types";
 import { LiveStats } from "./LiveStats";
@@ -153,6 +154,9 @@ export function TypingTest({ mode, onResult, bestCpm }: Props) {
   // ── 키 입력: Tab(=새 지문), 완료 후 Enter(=재시작) ─────────────────
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      // 키보드 사운드 (길게 눌러 반복되는 입력은 제외)
+      if (!e.repeat) soundEngine.playForEvent(e.code, e.key);
+
       if (e.key === "Tab") {
         e.preventDefault();
         reset(mode);

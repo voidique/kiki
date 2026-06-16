@@ -37,10 +37,14 @@
   --glass-highlight: rgba(255, 255, 255, 0.95);
   --glass-pill-bg: rgba(255, 255, 255, 0.92);
   --glass-shadow: rgba(17, 17, 17, 0.16);
+  --glass-track: rgba(17, 17, 17, 0.08);
+  --glass-fill: rgba(17, 17, 17, 0.55);
 }
 
+/* 다크 팔레트 — 명시 선택(data-theme="dark")과, 미선택 시 시스템 설정
+ * (prefers-color-scheme) 양쪽에서 동일하게 적용한다. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0c0c0c;
     --surface: #111111;
     --fg: #ededed;
@@ -50,14 +54,36 @@
     --error: #e2645a;
     --caret: #ededed;
 
-    /* liquid glass (dark) */
     --glass-bg: rgba(255, 255, 255, 0.06);
     --glass-bg-hover: rgba(255, 255, 255, 0.12);
     --glass-border: rgba(255, 255, 255, 0.12);
     --glass-highlight: rgba(255, 255, 255, 0.22);
     --glass-pill-bg: rgba(255, 255, 255, 0.16);
     --glass-shadow: rgba(0, 0, 0, 0.5);
+    --glass-track: rgba(255, 255, 255, 0.1);
+    --glass-fill: rgba(255, 255, 255, 0.7);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0c0c;
+  --surface: #111111;
+  --fg: #ededed;
+  --muted: #6f6f6f;
+  --faint: #3a3a3a;
+  --line: #232323;
+  --error: #e2645a;
+  --caret: #ededed;
+
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-hover: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.22);
+  --glass-pill-bg: rgba(255, 255, 255, 0.16);
+  --glass-shadow: rgba(0, 0, 0, 0.5);
+  --glass-track: rgba(255, 255, 255, 0.1);
+  --glass-fill: rgba(255, 255, 255, 0.7);
 }
 
 html,
