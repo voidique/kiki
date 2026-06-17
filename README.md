@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# kiki
 
-## Getting Started
+순수 타자 연습에 집중한 모노크롬 미니멀 타이핑 앱. 한글·영문의 무작위 단어·문장·명언 모드를 지원하며, 타수(CPM/WPM)·정확도·일관성을 측정합니다.
 
-First, run the development server:
+## 개발
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) 에서 확인합니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 폴더 구조
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  layout.tsx          # 루트 레이아웃 · 폰트 · 메타데이터 · 테마 스크립트
+  page.tsx            # 메인 페이지 (모드·언어 상태)
+  globals.css         # 테마 토큰 · 리퀴드 글래스 스타일
+  opengraph-image.tsx # OG 이미지
+  robots.ts           # robots.txt
+  sitemap.ts          # sitemap.xml
+  fonts/              # Pretendard 로컬 폰트
 
-## Learn More
+components/
+  TypingTest.tsx      # 타이핑 입력 · 캐럿 · 채점 (핵심)
+  LiveStats.tsx       # 진행 중 실시간 타수/정확도
+  Results.tsx         # 완료 후 결과 화면
+  ModeTabs.tsx        # 단어/문장/명언 모드 전환
+  LanguageToggle.tsx  # 한/영 전환
+  Controls.tsx        # 우측 하단 다크모드 · 사운드 볼륨 컨트롤
 
-To learn more about Next.js, take a look at the following resources:
+lib/
+  hangul.ts           # 한글 자모 분해 · 타수(CPM) 계산
+  stats.ts            # 결과(타수·정확도·일관성) 산출
+  storage.ts          # localStorage 저장 (→ 향후 PostgreSQL)
+  settings.tsx        # 테마 · 사운드 전역 설정
+  sound.ts            # 키보드 사운드 엔진 (Web Audio)
+  types.ts            # 공용 타입
+  i18n.ts             # 언어 관련 유틸
+  site.ts             # 사이트 메타 상수
+  content/            # 지문 데이터 (ko/ · en/ 단어·문장·명언)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+public/
+  sounds/             # 키보드 사운드 (BACKSPACE · ENTER · SPACE · GENERIC_R0~R4)
+```
