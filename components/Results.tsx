@@ -1,15 +1,29 @@
 "use client";
 
-import { type ContentItem, MODE_LABELS, type TestResult } from "@/lib/types";
+import { strings } from "@/lib/i18n";
+import {
+  type ContentItem,
+  type Language,
+  MODE_LABELS,
+  type TestResult,
+} from "@/lib/types";
 
 interface ResultsProps {
   result: TestResult;
   content: ContentItem;
+  language: Language;
   bestCpm: number;
   onRestart: () => void;
 }
 
-export function Results({ result, content, bestCpm, onRestart }: ResultsProps) {
+export function Results({
+  result,
+  content,
+  language,
+  bestCpm,
+  onRestart,
+}: ResultsProps) {
+  const t = strings(language);
   const isBest = result.cpm >= bestCpm && result.cpm > 0;
   const seconds = (result.durationMs / 1000).toFixed(1);
 
@@ -18,13 +32,15 @@ export function Results({ result, content, bestCpm, onRestart }: ResultsProps) {
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-col">
           <span className="text-xs uppercase tracking-widest text-faint">
-            타수 · CPM
+            {t.cpmHeading}
           </span>
           <span className="font-mono text-7xl font-medium leading-none tabular-nums">
             {Math.round(result.cpm)}
           </span>
           <span className="mt-2 text-sm text-muted">
-            {isBest ? "개인 최고 기록 · " : `최고 ${Math.round(bestCpm)} · `}
+            {isBest
+              ? `${t.personalBest} · `
+              : `${t.best} ${Math.round(bestCpm)} · `}
             {MODE_LABELS[result.mode]}
           </span>
         </div>
