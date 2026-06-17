@@ -2,12 +2,15 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { strings } from "@/lib/i18n";
 import type { CharSample } from "@/lib/stats";
+import type { Language } from "@/lib/types";
 
 type Status = "idle" | "running" | "done";
 
 interface LiveStatsProps {
   status: Status;
+  language: Language;
   startedAt: number;
   typed: string;
   target: string;
@@ -29,11 +32,13 @@ const BELOW = { opacity: 0, filter: "blur(8px)", y: 8 };
 
 export function LiveStats({
   status,
+  language,
   startedAt,
   typed,
   target,
   samples,
 }: LiveStatsProps) {
+  const t = strings(language);
   const [, rerender] = useState(0);
 
   useEffect(() => {
@@ -89,11 +94,11 @@ export function LiveStats({
               transition={CONTENT_SPRING}
               className="flex items-center gap-2.5 font-mono tabular-nums sm:gap-3"
             >
-              <Stat label="타수" value={cpm} />
+              <Stat label={t.cpm} value={cpm} />
               <Rule />
-              <Stat label="정확도" value={`${accuracy}%`} />
+              <Stat label={t.accuracy} value={`${accuracy}%`} />
               <Rule />
-              <Stat label="시간" value={`${seconds}s`} />
+              <Stat label={t.time} value={`${seconds}s`} />
               <Rule />
               <span className="text-xs text-white/40">
                 {typed.length}/{target.length}
@@ -109,7 +114,7 @@ export function LiveStats({
               transition={CONTENT_SPRING}
               className="pr-1 text-sm text-white/75"
             >
-              타이핑을 시작하세요
+              {t.startTyping}
             </motion.span>
           )}
         </AnimatePresence>

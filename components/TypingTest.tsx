@@ -9,6 +9,7 @@ import {
 } from "react";
 import { contentIdFor, makeContent } from "@/lib/content";
 import { strokesOfChar } from "@/lib/hangul";
+import { strings } from "@/lib/i18n";
 import { soundEngine } from "@/lib/sound";
 import { type CharSample, computeResult } from "@/lib/stats";
 import type { ContentItem, Language, TestMode, TestResult } from "@/lib/types";
@@ -30,6 +31,7 @@ export function TypingTest({
   bestCpm,
   onResult,
 }: TypingTestProps) {
+  const t = strings(language);
   const [content, setContent] = useState<ContentItem | null>(null);
   const [typed, setTyped] = useState("");
   const [composing, setComposing] = useState(false);
@@ -162,6 +164,7 @@ export function TypingTest({
     <div className="flex w-full flex-col items-center gap-8">
       <LiveStats
         status={status}
+        language={language}
         startedAt={startedAtRef.current}
         typed={typed}
         target={target}
@@ -172,13 +175,14 @@ export function TypingTest({
         <Results
           result={result}
           content={content}
+          language={language}
           bestCpm={bestCpm}
           onRestart={reset}
         />
       ) : (
         <button
           type="button"
-          aria-label="타이핑 영역에 집중"
+          aria-label={t.focusArea}
           onClick={focusInput}
           className="group relative w-full max-w-3xl cursor-text text-left"
         >
@@ -253,7 +257,7 @@ export function TypingTest({
           {!focused && status !== "done" && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span className="glass rounded-full px-5 py-2.5 text-sm text-muted">
-                클릭하면 시작
+                {t.clickToStart}
               </span>
             </div>
           )}
@@ -262,7 +266,7 @@ export function TypingTest({
 
       {status !== "done" && (
         <p className="text-xs text-muted">
-          <kbd className="font-mono">Tab</kbd> 새 지문
+          <kbd className="font-mono">Tab</kbd> {t.newText}
         </p>
       )}
     </div>
