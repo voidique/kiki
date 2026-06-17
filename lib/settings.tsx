@@ -10,12 +10,6 @@ import {
 } from "react";
 import { soundEngine } from "./sound";
 
-/*
- * 전역 사용자 설정 — 테마(라이트/다크)와 키보드 사운드(on/off·볼륨).
- * localStorage 에 보관하고, 테마는 <html data-theme> 로 반영한다.
- * 첫 페인트 깜빡임은 layout 의 인라인 스크립트가 미리 막는다.
- */
-
 type Theme = "light" | "dark";
 
 interface Settings {
@@ -23,7 +17,7 @@ interface Settings {
   toggleTheme: () => void;
   soundOn: boolean;
   toggleSound: () => void;
-  volume: number; // 0..1
+  volume: number;
   setVolume: (v: number) => void;
 }
 
@@ -41,7 +35,6 @@ function systemTheme(): Theme {
 }
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  // SSR/첫 렌더는 결정적 기본값 → 마운트 후 실제 값으로 동기화 (하이드레이션 안전)
   const [theme, setTheme] = useState<Theme>("light");
   const [soundOn, setSoundOn] = useState(true);
   const [volume, setVolumeState] = useState(0.6);
@@ -60,13 +53,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // 테마 → <html data-theme> + 저장
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  // 사운드 엔진 동기화 + 저장
   useEffect(() => {
     soundEngine.setEnabled(soundOn);
     window.localStorage.setItem(SOUND_KEY, soundOn ? "1" : "0");

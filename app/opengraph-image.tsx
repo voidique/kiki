@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
-// 동적 OG 이미지 — 브랜드 모노크롬 카드 (아이콘/파비콘은 별도, 여기선 OG만)
-export const alt = "kiki — minimal typing practice";
+export const alt = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -29,7 +29,7 @@ export default function OpengraphImage() {
           lineHeight: 1,
         }}
       >
-        kiki
+        {SITE_NAME}
       </div>
       <div
         style={{
@@ -39,7 +39,7 @@ export default function OpengraphImage() {
           color: "#9a9a9a",
         }}
       >
-        minimal typing practice
+        {SITE_TAGLINE}
       </div>
       <div
         style={{

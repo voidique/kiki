@@ -3,17 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSettings } from "@/lib/settings";
 
-/*
- * 우측 하단 글래스 컨트롤 클러스터 — 테마 토글 + 사운드.
- * 사운드 아이콘을 누르면 유리 느낌의 볼륨 슬라이더(progress)가 떠오른다.
- */
 export function Controls() {
   const { theme, toggleTheme, soundOn, toggleSound, volume, setVolume } =
     useSettings();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  // 바깥 클릭 / ESC 로 팝오버 닫기
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
@@ -41,7 +36,6 @@ export function Controls() {
             volume={soundOn ? volume : 0}
             onChange={(v) => {
               setVolume(v);
-              // 0 으로 내리면 음소거, 다시 올리면 자동 활성
               if (v > 0 && !soundOn) toggleSound();
               if (v === 0 && soundOn) toggleSound();
             }}
@@ -66,7 +60,6 @@ export function Controls() {
   );
 }
 
-/* ── 공통 글래스 아이콘 버튼 ─────────────────────────────── */
 function IconButton({
   label,
   onClick,
@@ -93,7 +86,6 @@ function IconButton({
   );
 }
 
-/* ── 유리 볼륨 슬라이더 (수직 progress) ─────────────────── */
 function VolumePopover({
   volume,
   onChange,
@@ -109,7 +101,6 @@ function VolumePopover({
       const el = trackRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
-      // 아래(0) → 위(1)
       const ratio = 1 - (clientY - rect.top) / rect.height;
       onChange(Math.round(Math.min(1, Math.max(0, ratio)) * 100) / 100);
     },
@@ -135,7 +126,6 @@ function VolumePopover({
       <span className="font-mono text-[11px] tabular-nums text-muted">
         {pct}
       </span>
-      {/* 트랙 */}
       <button
         type="button"
         ref={trackRef as unknown as React.RefObject<HTMLButtonElement>}
@@ -148,7 +138,6 @@ function VolumePopover({
           setFromPointer(e.clientY);
         }}
       >
-        {/* 채워진 부분 */}
         <span
           className="absolute inset-x-0 bottom-0 rounded-full"
           style={{
@@ -157,7 +146,6 @@ function VolumePopover({
             boxShadow: "inset 0 1px 0 0 var(--glass-highlight)",
           }}
         />
-        {/* 손잡이 */}
         <span
           className="glass absolute left-1/2 h-5 w-5 -translate-x-1/2 translate-y-1/2 rounded-full"
           style={{ bottom: `${pct}%` }}
@@ -167,7 +155,6 @@ function VolumePopover({
   );
 }
 
-/* ── 아이콘 (currentColor 스트로크) ─────────────────────── */
 function SoundIcon({ on }: { on: boolean }) {
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: 버튼에 aria-label 있는 장식용 아이콘

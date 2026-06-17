@@ -1,6 +1,5 @@
 import type { ContentItem } from "@/lib/types";
 
-/** 명언 모드용 — 실제 인물의 명언 (출처 표기) */
 export const KO_QUOTES: ContentItem[] = [
   {
     id: "ko-q-001",

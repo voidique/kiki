@@ -6,7 +6,8 @@ import { KO_QUOTES } from "./ko/quotes";
 import { KO_SENTENCES } from "./ko/sentences";
 import { KO_WORDS } from "./ko/words";
 
-export const WORDS_PER_TEST = 25;
+const WORDS_PER_TEST = 25;
+const GENERATED_WORDS_ID = "words-generated";
 
 const WORDS: Record<Language, string[]> = { ko: KO_WORDS, en: EN_WORDS };
 const SENTENCES: Record<Language, ContentItem[]> = {
@@ -18,38 +19,33 @@ const QUOTES: Record<Language, ContentItem[]> = {
   en: EN_QUOTES,
 };
 
-function pick<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function pick<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
 }
 
-/** 무작위 단어 N개를 공백으로 이어 붙인 지문 */
-function buildWords(lang: Language, count: number): ContentItem {
-  const pool = WORDS[lang];
-  const words: string[] = [];
-  for (let i = 0; i < count; i++) words.push(pick(pool));
+function buildWords(language: Language): ContentItem {
+  const pool = WORDS[language];
+  const words = Array.from({ length: WORDS_PER_TEST }, () => pick(pool));
   return {
-    // words 모드는 매번 새로 생성되므로 content_id 는 null (DB 저장 시)
-    id: "words-generated",
+    id: GENERATED_WORDS_ID,
     type: "words",
-    language: lang,
+    language,
     text: words.join(" "),
     author: null,
   };
 }
 
-/** 모드 + 언어에 맞는 새 지문을 만든다. */
-export function makeContent(mode: TestMode, lang: Language): ContentItem {
+export function makeContent(mode: TestMode, language: Language): ContentItem {
   switch (mode) {
     case "words":
-      return buildWords(lang, WORDS_PER_TEST);
+      return buildWords(language);
     case "sentence":
-      return pick(SENTENCES[lang]);
+      return pick(SENTENCES[language]);
     case "quote":
-      return pick(QUOTES[lang]);
+      return pick(QUOTES[language]);
   }
 }
 
-/** words 모드처럼 즉석 생성된 지문은 DB content_id 가 없다. */
 export function contentIdFor(item: ContentItem): string | null {
-  return item.id === "words-generated" ? null : item.id;
+  return item.id === GENERATED_WORDS_ID ? null : item.id;
 }

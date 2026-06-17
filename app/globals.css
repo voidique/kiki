@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/*
- * kiki — monochrome minimal typing app
- * 단일 무채색 팔레트 + 기능색(오류)으로 빨강 하나만 허용
- */
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -20,7 +16,6 @@
 }
 
 :root {
-  /* light */
   --bg: #fafafa;
   --surface: #ffffff;
   --fg: #111111;
@@ -30,19 +25,18 @@
   --error: #c0392b;
   --caret: #111111;
 
-  /* liquid glass (light) */
-  --glass-bg: rgba(255, 255, 255, 0.5);
-  --glass-bg-hover: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(17, 17, 17, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-bg-hover: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(17, 17, 17, 0.07);
   --glass-highlight: rgba(255, 255, 255, 0.95);
+  --glass-sheen: rgba(255, 255, 255, 0.55);
+  --glass-lowlight: rgba(17, 17, 17, 0.05);
   --glass-pill-bg: rgba(255, 255, 255, 0.92);
-  --glass-shadow: rgba(17, 17, 17, 0.16);
+  --glass-shadow: rgba(17, 17, 17, 0.18);
   --glass-track: rgba(17, 17, 17, 0.08);
   --glass-fill: rgba(17, 17, 17, 0.55);
 }
 
-/* 다크 팔레트 — 명시 선택(data-theme="dark")과, 미선택 시 시스템 설정
- * (prefers-color-scheme) 양쪽에서 동일하게 적용한다. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0c0c0c;
@@ -54,10 +48,12 @@
     --error: #e2645a;
     --caret: #ededed;
 
-    --glass-bg: rgba(255, 255, 255, 0.06);
-    --glass-bg-hover: rgba(255, 255, 255, 0.12);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-bg-hover: rgba(255, 255, 255, 0.11);
     --glass-border: rgba(255, 255, 255, 0.12);
-    --glass-highlight: rgba(255, 255, 255, 0.22);
+    --glass-highlight: rgba(255, 255, 255, 0.24);
+    --glass-sheen: rgba(255, 255, 255, 0.1);
+    --glass-lowlight: rgba(0, 0, 0, 0.4);
     --glass-pill-bg: rgba(255, 255, 255, 0.16);
     --glass-shadow: rgba(0, 0, 0, 0.5);
     --glass-track: rgba(255, 255, 255, 0.1);
@@ -76,10 +72,12 @@
   --error: #e2645a;
   --caret: #ededed;
 
-  --glass-bg: rgba(255, 255, 255, 0.06);
-  --glass-bg-hover: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-hover: rgba(255, 255, 255, 0.11);
   --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-highlight: rgba(255, 255, 255, 0.22);
+  --glass-highlight: rgba(255, 255, 255, 0.24);
+  --glass-sheen: rgba(255, 255, 255, 0.1);
+  --glass-lowlight: rgba(0, 0, 0, 0.4);
   --glass-pill-bg: rgba(255, 255, 255, 0.16);
   --glass-shadow: rgba(0, 0, 0, 0.5);
   --glass-track: rgba(255, 255, 255, 0.1);
@@ -99,7 +97,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 타이핑 영역에서 텍스트 선택/드래그 방지 (몰입 유지) */
 .no-select {
   user-select: none;
   -webkit-user-select: none;
@@ -120,79 +117,6 @@ body {
   animation: caret-blink 1.05s steps(1) infinite;
 }
 
-/*
- * Liquid glass — 반투명 + 배경 블러 + 가장자리 스페큘러 하이라이트 + 부유 그림자.
- * shadcn 류의 평면 단색 surface 와 의도적으로 다르게.
- */
-.glass {
-  /* Lightning CSS 가 손수 쓴 backdrop-filter 를 제거해서, Tailwind 유틸을 @apply 로 위임 */
-  @apply backdrop-blur-xl backdrop-saturate-150;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    inset 0 1px 0 0 var(--glass-highlight),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 12px 32px -14px var(--glass-shadow);
-  transition:
-    background 0.22s ease,
-    box-shadow 0.22s ease,
-    transform 0.22s ease;
-}
-
-.glass-interactive:hover {
-  background: var(--glass-bg-hover);
-  box-shadow:
-    inset 0 1px 0 0 var(--glass-highlight),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 16px 40px -14px var(--glass-shadow);
-}
-
-.glass-interactive:active {
-  transform: translateY(0.5px) scale(0.985);
-}
-
-/* 선택된 탭 = 유리 위에 얹힌 반들거리는 렌즈 */
-.glass-pill {
-  background: var(--glass-pill-bg);
-  box-shadow:
-    inset 0 1px 0 0 var(--glass-highlight),
-    0 2px 10px -2px var(--glass-shadow);
-}
-
-/*
- * Dynamic Island — 항상 어두운 캡슐. 상태 전환 시 통통 튀며 등장(스프링),
- * 내부 스탯은 살짝 슬라이드인. iPhone 다이나믹 아일랜드 느낌.
- */
-@keyframes island-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -10px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-  }
-}
-
-.island-in {
-  animation: island-in 0.44s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes island-seg-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.island-seg {
-  animation: island-seg-in 0.4s ease both;
-}
-
 @keyframes dot-pulse {
   0%,
   100% {
@@ -200,11 +124,56 @@ body {
     transform: scale(1);
   }
   50% {
-    opacity: 0.35;
-    transform: scale(0.6);
+    opacity: 0.4;
+    transform: scale(0.62);
   }
 }
 
 .dot-pulse {
   animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+.glass {
+  @apply backdrop-blur-2xl backdrop-saturate-150;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0.5px 0 var(--glass-highlight),
+    inset 0 6px 10px -9px var(--glass-sheen),
+    inset 0 -1px 1px 0 var(--glass-lowlight),
+    0 10px 30px -12px var(--glass-shadow);
+  transition:
+    background 0.24s ease,
+    box-shadow 0.24s ease,
+    transform 0.24s ease;
+}
+
+.glass-interactive:hover {
+  background: var(--glass-bg-hover);
+  box-shadow:
+    inset 0 1px 0.5px 0 var(--glass-highlight),
+    inset 0 6px 10px -9px var(--glass-sheen),
+    inset 0 -1px 1px 0 var(--glass-lowlight),
+    0 18px 46px -16px var(--glass-shadow);
+}
+
+.glass-interactive:active {
+  transform: translateY(0.5px) scale(0.98);
+}
+
+.glass-pill {
+  background: var(--glass-pill-bg);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 2px 10px -2px var(--glass-shadow);
+}
+
+.island {
+  @apply backdrop-blur-xl backdrop-saturate-150;
+  background: rgba(28, 28, 31, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -6px 12px -10px rgba(0, 0, 0, 0.6),
+    0 20px 50px -16px rgba(0, 0, 0, 0.5);
 }

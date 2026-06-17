@@ -17,16 +17,19 @@ import { Results } from "./Results";
 
 type Status = "idle" | "running" | "done";
 
-interface Props {
+interface TypingTestProps {
   mode: TestMode;
   language: Language;
-  onResult: (result: TestResult) => void;
   bestCpm: number;
+  onResult: (result: TestResult) => void;
 }
 
-export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
-  // 서버에서는 null — makeContent 의 Math.random 으로 인한 하이드레이션 불일치를 막기 위해
-  // 첫 지문은 마운트 후(useEffect)에 클라이언트에서만 생성한다.
+export function TypingTest({
+  mode,
+  language,
+  bestCpm,
+  onResult,
+}: TypingTestProps) {
   const [content, setContent] = useState<ContentItem | null>(null);
   const [typed, setTyped] = useState("");
   const [composing, setComposing] = useState(false);
@@ -37,15 +40,14 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const caretRef = useRef<HTMLDivElement>(null);
-  const charEls = useRef<(HTMLSpanElement | null)[]>([]);
+  const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  const startedAtRef = useRef<number>(0);
+  const startedAtRef = useRef(0);
   const samplesRef = useRef<CharSample[]>([]);
-  const sampledLenRef = useRef(0);
+  const committedRef = useRef(0);
 
   const target = content?.text ?? "";
 
-  /** 새 지문으로 초기화 (현재 모드 + 언어 기준) */
   const reset = useCallback(() => {
     setContent(makeContent(mode, language));
     setTyped("");
@@ -53,22 +55,18 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
     setStatus("idle");
     setResult(null);
     samplesRef.current = [];
-    sampledLenRef.current = 0;
+    committedRef.current = 0;
     startedAtRef.current = 0;
-    // 다음 프레임에 포커스 (DOM 갱신 후)
     requestAnimationFrame(() => inputRef.current?.focus());
   }, [mode, language]);
 
-  // 모드 또는 언어가 바뀌면 새 지문
-  useEffect(() => {
-    reset();
-  }, [reset]);
+  useEffect(() => reset(), [reset]);
 
   const finish = useCallback(
     (finalTyped: string) => {
       if (!content) return;
       const finishedAt = Date.now();
-      const res = computeResult(
+      const next = computeResult(
         {
           content,
           typed: finalTyped,
@@ -80,13 +78,12 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
         contentIdFor(content),
       );
       setStatus("done");
-      setResult(res);
-      onResult(res);
+      setResult(next);
+      onResult(next);
     },
     [content, mode, onResult],
   );
 
-  /** 입력값 동기화 + 표본/완료 처리 (onChange · compositionEnd 공통 진입점) */
   const sync = useCallback(
     (value: string, isComposing: boolean) => {
       if (status === "done") return;
@@ -98,27 +95,24 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
       setTyped(value);
       setComposing(isComposing);
 
-      // 조합 중인 마지막 글자는 아직 확정 전 → 표본에서 제외
       const committed = isComposing
         ? Math.max(0, value.length - 1)
         : value.length;
-      const now = Date.now() - (startedAtRef.current || Date.now());
+      const elapsed = Date.now() - (startedAtRef.current || Date.now());
 
-      if (committed > sampledLenRef.current) {
-        for (let i = sampledLenRef.current; i < committed; i++) {
-          const ch = value[i];
+      if (committed > committedRef.current) {
+        for (let i = committedRef.current; i < committed; i += 1) {
+          const char = value[i];
           samplesRef.current.push({
-            atMs: now,
-            correct: i < target.length && ch === target[i],
-            strokes: strokesOfChar(ch),
+            atMs: elapsed,
+            correct: i < target.length && char === target[i],
+            strokes: strokesOfChar(char),
           });
         }
-        sampledLenRef.current = committed;
-      } else if (committed < sampledLenRef.current) {
-        // 백스페이스 등으로 줄어들면 표본도 잘라낸다
+      } else if (committed < committedRef.current) {
         samplesRef.current.length = committed;
-        sampledLenRef.current = committed;
       }
+      committedRef.current = committed;
 
       if (!isComposing && value.length >= target.length) {
         finish(value.slice(0, target.length));
@@ -127,44 +121,34 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
     [status, target, finish],
   );
 
-  // ── 캐럿 위치 측정 (비례 폰트·줄바꿈 대응) ───────────────────────
   useLayoutEffect(() => {
     const caret = caretRef.current;
     const container = containerRef.current;
     if (!caret || !container) return;
 
     const caretIndex = composing ? Math.max(0, typed.length - 1) : typed.length;
-    const cRect = container.getBoundingClientRect();
+    const atEnd = caretIndex >= target.length;
+    const anchor = charRefs.current[atEnd ? target.length - 1 : caretIndex];
+    if (!anchor) return;
 
-    if (caretIndex < target.length) {
-      const el = charEls.current[caretIndex];
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      caret.style.transform = `translate(${r.left - cRect.left}px, ${r.top - cRect.top}px)`;
-      caret.style.height = `${r.height}px`;
-    } else {
-      // 마지막 글자 오른쪽
-      const el = charEls.current[target.length - 1];
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      caret.style.transform = `translate(${r.right - cRect.left}px, ${r.top - cRect.top}px)`;
-      caret.style.height = `${r.height}px`;
-    }
+    const containerRect = container.getBoundingClientRect();
+    const rect = anchor.getBoundingClientRect();
+    const x = (atEnd ? rect.right : rect.left) - containerRect.left;
+    caret.style.transform = `translate(${x}px, ${rect.top - containerRect.top}px)`;
+    caret.style.height = `${rect.height}px`;
   }, [typed, composing, target]);
 
-  // ── 키 입력: Tab(=새 지문), 완료 후 Enter(=재시작) ─────────────────
   const onKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      // 키보드 사운드 (길게 눌러 반복되는 입력은 제외)
-      if (!e.repeat) soundEngine.playForEvent(e.code, e.key);
+    (event: React.KeyboardEvent) => {
+      if (!event.repeat) soundEngine.playForEvent(event.code, event.key);
 
-      if (e.key === "Tab") {
-        e.preventDefault();
+      if (event.key === "Tab") {
+        event.preventDefault();
         reset();
         return;
       }
-      if (status === "done" && e.key === "Enter") {
-        e.preventDefault();
+      if (status === "done" && event.key === "Enter") {
+        event.preventDefault();
         reset();
       }
     },
@@ -172,27 +156,24 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
   );
 
   const focusInput = () => inputRef.current?.focus();
-
   const composingIndex = composing ? typed.length - 1 : -1;
 
   return (
     <div className="flex w-full flex-col items-center gap-8">
-      {status !== "done" && (
-        <LiveStats
-          status={status}
-          startedAt={startedAtRef.current}
-          typed={typed}
-          target={target}
-          samples={samplesRef.current}
-        />
-      )}
+      <LiveStats
+        status={status}
+        startedAt={startedAtRef.current}
+        typed={typed}
+        target={target}
+        samples={samplesRef.current}
+      />
 
       {result && content ? (
         <Results
           result={result}
           content={content}
           bestCpm={bestCpm}
-          onRestart={() => reset()}
+          onRestart={reset}
         />
       ) : (
         <button
@@ -201,19 +182,18 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
           onClick={focusInput}
           className="group relative w-full max-w-3xl cursor-text text-left"
         >
-          {/* 화면 밖 숨김 입력 — IME 가 여기에 붙는다 */}
           <input
             ref={inputRef}
             value={typed}
             maxLength={target.length}
-            onChange={(e) =>
+            onChange={(event) =>
               sync(
-                e.target.value,
-                (e.nativeEvent as InputEvent).isComposing ?? false,
+                event.target.value,
+                (event.nativeEvent as InputEvent).isComposing ?? false,
               )
             }
             onCompositionStart={() => setComposing(true)}
-            onCompositionEnd={(e) => sync(e.currentTarget.value, false)}
+            onCompositionEnd={(event) => sync(event.currentTarget.value, false)}
             onKeyDown={onKeyDown}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -228,7 +208,6 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
             ref={containerRef}
             className="no-select relative whitespace-pre-wrap break-keep font-sans text-[2rem] leading-[1.9] tracking-wide sm:text-[2.2rem]"
           >
-            {/* 캐럿 */}
             <div
               ref={caretRef}
               className={`pointer-events-none absolute left-0 top-0 w-[2px] bg-caret ${
@@ -237,33 +216,33 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
               style={{ transition: "transform 90ms ease" }}
             />
 
-            {Array.from(target).map((ch, i) => {
-              const isComposingChar = i === composingIndex;
-              const isTyped = i < typed.length;
-              let cls = "text-faint"; // 미입력
-              let glyph = ch;
+            {Array.from(target).map((char, index) => {
+              const isComposingChar = index === composingIndex;
+              const isTyped = index < typed.length;
+
+              let className = "text-faint";
+              let glyph = char;
 
               if (isComposingChar) {
-                cls =
+                className =
                   "text-fg underline decoration-muted/60 underline-offset-4";
-                glyph = typed[i] ?? ch;
+                glyph = typed[index] ?? char;
               } else if (isTyped) {
-                if (typed[i] === target[i]) {
-                  cls = "text-fg";
+                if (typed[index] === target[index]) {
+                  className = "text-fg";
                 } else {
-                  cls = "text-error";
-                  glyph = typed[i]; // 실제 친 (틀린) 글자를 보여줌
+                  className = "text-error";
+                  glyph = typed[index];
                 }
               }
 
               return (
                 <span
-                  // 지문 인덱스 기반 key (글자 중복 있어도 안전)
-                  key={`${i}-${ch}`}
+                  key={`${index}-${char}`}
                   ref={(el) => {
-                    charEls.current[i] = el;
+                    charRefs.current[index] = el;
                   }}
-                  className={cls}
+                  className={className}
                 >
                   {glyph}
                 </span>
@@ -273,7 +252,7 @@ export function TypingTest({ mode, language, onResult, bestCpm }: Props) {
 
           {!focused && status !== "done" && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span className="rounded-md bg-bg/70 px-4 py-2 text-sm text-muted backdrop-blur-sm">
+              <span className="glass rounded-full px-5 py-2.5 text-sm text-muted">
                 클릭하면 시작
               </span>
             </div>

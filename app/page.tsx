@@ -16,29 +16,26 @@ export default function Home() {
   const [mode, setMode] = useState<TestMode>("words");
   const [language, setLanguage] = useState<Language>("ko");
   const [best, setBest] = useState(0);
-
-  // 저장된 선택(언어·모드) 복원 — 마운트 후에만(하이드레이션 안전)
   const hydrated = useRef(false);
+
   useEffect(() => {
-    const p = loadPrefs();
-    if (p.mode) setMode(p.mode);
-    if (p.language) setLanguage(p.language);
+    const prefs = loadPrefs();
+    if (prefs.mode) setMode(prefs.mode);
+    if (prefs.language) setLanguage(prefs.language);
     hydrated.current = true;
   }, []);
 
-  // 선택 저장
   useEffect(() => {
     if (hydrated.current) savePrefs({ mode, language });
   }, [mode, language]);
 
-  // 모드+언어별 개인 최고 타수
   useEffect(() => {
     setBest(readBestCpm(mode, language));
   }, [mode, language]);
 
   const handleResult = useCallback((result: TestResult) => {
-    const rows = saveResult(result);
-    setBest(readBestCpm(result.mode, result.language, rows));
+    const results = saveResult(result);
+    setBest(readBestCpm(result.mode, result.language, results));
   }, []);
 
   return (
@@ -57,8 +54,8 @@ export default function Home() {
         <TypingTest
           mode={mode}
           language={language}
-          onResult={handleResult}
           bestCpm={best}
+          onResult={handleResult}
         />
       </main>
     </div>

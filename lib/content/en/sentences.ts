@@ -1,6 +1,5 @@
 import type { ContentItem } from "@/lib/types";
 
-/** Sentence-mode English practice sentences */
 export const EN_SENTENCES: ContentItem[] = [
   {
     id: "en-s-001",

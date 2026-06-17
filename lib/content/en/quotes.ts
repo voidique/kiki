@@ -1,6 +1,5 @@
 import type { ContentItem } from "@/lib/types";
 
-/** Quote-mode — real quotes from historical/public figures (attributed) */
 export const EN_QUOTES: ContentItem[] = [
   {
     id: "en-q-001",

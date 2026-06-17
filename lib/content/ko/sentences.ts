@@ -1,6 +1,5 @@
 import type { ContentItem } from "@/lib/types";
 
-/** 문장 모드용 — 자연스러운 한국어 연습 문장 */
 export const KO_SENTENCES: ContentItem[] = [
   {
     id: "ko-s-001",

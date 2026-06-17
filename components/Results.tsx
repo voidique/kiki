@@ -2,26 +2,25 @@
 
 import { type ContentItem, MODE_LABELS, type TestResult } from "@/lib/types";
 
-interface Props {
+interface ResultsProps {
   result: TestResult;
   content: ContentItem;
   bestCpm: number;
   onRestart: () => void;
 }
 
-export function Results({ result, content, bestCpm, onRestart }: Props) {
+export function Results({ result, content, bestCpm, onRestart }: ResultsProps) {
   const isBest = result.cpm >= bestCpm && result.cpm > 0;
   const seconds = (result.durationMs / 1000).toFixed(1);
 
   return (
     <div className="flex w-full max-w-3xl flex-col gap-10">
-      {/* 헤드라인: 타수(CPM) */}
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-col">
           <span className="text-xs uppercase tracking-widest text-faint">
             타수 · CPM
           </span>
-          <span className="font-mono text-7xl font-medium tabular-nums leading-none">
+          <span className="font-mono text-7xl font-medium leading-none tabular-nums">
             {Math.round(result.cpm)}
           </span>
           <span className="mt-2 text-sm text-muted">
@@ -38,7 +37,6 @@ export function Results({ result, content, bestCpm, onRestart }: Props) {
         </div>
       </div>
 
-      {/* 상세 — 칩 형태로 정돈 */}
       <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
         <Chip
           label="원시"
@@ -53,7 +51,7 @@ export function Results({ result, content, bestCpm, onRestart }: Props) {
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div>
         <button
           type="button"
           onClick={onRestart}

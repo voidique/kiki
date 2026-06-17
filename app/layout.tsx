@@ -3,9 +3,15 @@ import { Geist_Mono, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import { Controls } from "@/components/Controls";
 import { SettingsProvider } from "@/lib/settings";
+import {
+  SITE_DESCRIPTION,
+  SITE_DESCRIPTION_SHORT,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/site";
 import "./globals.css";
 
-/* 첫 페인트 전에 저장된 테마를 <html data-theme> 로 반영 → 다크/라이트 깜빡임 방지 */
 const themeScript = `(function(){try{var t=localStorage.getItem("kiki.theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;}}catch(e){}})();`;
 
 const pretendard = localFont({
@@ -20,26 +26,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 워드마크(kiki) 전용 — 본문 Pretendard 와 뚜렷이 구분되는 지오메트릭 디스플레이 폰트
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
   weight: ["500", "700"],
 });
 
-// 배포 도메인 — 실제 도메인이 정해지면 NEXT_PUBLIC_SITE_URL 로 덮어쓴다.
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://kiki-typing.vercel.app";
+const title = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: "kiki — minimal typing practice",
-    template: "%s · kiki",
-  },
-  description:
-    "kiki is a clean, monochrome, minimal typing-practice app focused on pure typing. Practice with random words, sentences, and quotes in Korean and English, and track your speed (CPM/WPM), accuracy, and consistency.",
-  applicationName: "kiki",
+  metadataBase: new URL(SITE_URL),
+  title: { default: title, template: `%s · ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: [
     "typing test",
     "typing practice",
@@ -55,25 +54,23 @@ export const metadata: Metadata = {
     "minimal",
     "monochrome",
   ],
-  authors: [{ name: "kiki" }],
-  creator: "kiki",
-  publisher: "kiki",
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   category: "productivity",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    url: siteUrl,
-    siteName: "kiki",
-    title: "kiki — minimal typing practice",
-    description:
-      "A clean, monochrome typing-practice app. Words, sentences, and quotes in Korean and English. Track CPM, accuracy, and consistency.",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title,
+    description: SITE_DESCRIPTION_SHORT,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "kiki — minimal typing practice",
-    description:
-      "A clean, monochrome typing-practice app. Words, sentences, and quotes in Korean and English.",
+    title,
+    description: SITE_DESCRIPTION_SHORT,
   },
   robots: {
     index: true,
@@ -89,18 +86,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="ko"
-      // 테마 스크립트가 첫 페인트 전 data-theme 를 주입 → 서버/클라 속성 차이는 의도된 것
       suppressHydrationWarning
       className={`${pretendard.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full`}
     >
       <head>
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 테마 깜빡임 방지용 사전 실행 스크립트 */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: pre-hydration theme script prevents a flash of the wrong color scheme */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-full">

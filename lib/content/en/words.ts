@@ -1,4 +1,3 @@
-/** Word-mode English word pool (common, high-frequency) */
 export const EN_WORDS: string[] = [
   "the",
   "and",
