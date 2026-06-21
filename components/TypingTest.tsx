@@ -59,7 +59,12 @@ export function TypingTest({
     samplesRef.current = [];
     committedRef.current = 0;
     startedAtRef.current = 0;
-    requestAnimationFrame(() => inputRef.current?.focus());
+    requestAnimationFrame(() => {
+      // Uncontrolled input: clear the DOM value imperatively (Tab mid-test
+      // reuses the same element and is not remounted).
+      if (inputRef.current) inputRef.current.value = "";
+      inputRef.current?.focus();
+    });
   }, [mode, language]);
 
   useEffect(() => reset(), [reset]);
@@ -188,7 +193,11 @@ export function TypingTest({
         >
           <input
             ref={inputRef}
-            value={typed}
+            // Uncontrolled on purpose: writing `value` back during IME
+            // composition corrupts the Hangul buffer on Windows (chars come
+            // out reversed/duplicated). We read from the element instead and
+            // render the visible text from `typed` state.
+            defaultValue=""
             maxLength={target.length}
             onChange={(event) =>
               sync(
